@@ -10,11 +10,12 @@ import { usageApi } from '../api';
 export default function Editor() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { removeBackground, processing, progress, progressLabel, error, resultUrl, remaining: apiRemaining, reset } = useRemoveBg();
+  const { removeBackground, processing, progress, progressLabel, error, resultUrl, reset } = useRemoveBg();
 
   const [originalFile, setOriginalFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [usage, setUsage] = useState({ today: 0, limit: 3, remaining: 3 });
+  const [usageError, setUsageError] = useState('');
 
   const fetchUsage = useCallback(async () => {
     try {
@@ -29,19 +30,9 @@ export default function Editor() {
     fetchUsage();
   }, [fetchUsage, user]);
 
-  // Обновляем счётчик из ответа API после обработки
-  useEffect(() => {
-    if (apiRemaining !== null) {
-      setUsage((prev) => ({
-        ...prev,
-        remaining: apiRemaining,
-        today: (prev.limit ?? 3) - apiRemaining,
-      }));
-    }
-  }, [apiRemaining]);
-
   const handleFile = (file) => {
     reset();
+    setUsageError('');
     if (originalUrl) URL.revokeObjectURL(originalUrl);
     setOriginalFile(file);
     setOriginalUrl(URL.createObjectURL(file));
@@ -49,9 +40,22 @@ export default function Editor() {
 
   const handleRemove = async () => {
     if (!originalFile) return;
+    setUsageError('');
+
+    // Проверяем лимит и трекаем использование
+    try {
+      const data = await usageApi.track();
+      setUsage((prev) => ({ ...prev, remaining: data.remaining, today: (prev.today || 0) + 1 }));
+    } catch (err) {
+      if (err.message?.includes('лимит')) {
+        setUsageError(err.message);
+        return;
+      }
+    }
+
     try {
       await removeBackground(originalFile);
-    } catch (err) {
+    } catch {
       // ошибка уже в хуке
     }
   };
@@ -69,9 +73,8 @@ export default function Editor() {
     setOriginalFile(null);
     if (originalUrl) URL.revokeObjectURL(originalUrl);
     setOriginalUrl(null);
+    setUsageError('');
   };
-
-  const isLimitError = error && (error.includes('лимит') || error.includes('429'));
 
   const remainingLabel =
     usage.limit === null
@@ -94,9 +97,9 @@ export default function Editor() {
             </div>
           </div>
 
-          {isLimitError && (
+          {usageError && (
             <div className="alert alert-error">
-              <p>{error}</p>
+              <p>{usageError}</p>
               {!user && (
                 <p className="alert-hint">Зарегистрируйтесь — лимит сбрасывается каждый день.</p>
               )}
@@ -130,7 +133,7 @@ export default function Editor() {
                 </div>
               )}
 
-              {error && !isLimitError && <p className="error-msg">{error}</p>}
+              {error && <p className="error-msg">{error}</p>}
             </div>
           )}
 
