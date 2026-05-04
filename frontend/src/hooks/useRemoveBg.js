@@ -51,7 +51,14 @@ export function useRemoveBg() {
     setProgress(0);
     setError(null);
     setResultUrl(null);
-    setProgressLabel('Загрузка AI-модели... Первый раз может занять до минуты');
+
+    const modelAlreadyCached = !!(cachedModel && cachedProcessor);
+    if (modelAlreadyCached) {
+      setProgressLabel('Обработка изображения...');
+      setProgress(50);
+    } else {
+      setProgressLabel('Загрузка AI-модели... Первый раз может занять до минуты');
+    }
 
     try {
       // Загружаем модель с прогрессом

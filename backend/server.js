@@ -7,6 +7,10 @@ const { authMiddleware } = require('./middleware');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Доверяем заголовку X-Forwarded-For от прокси Railway/Vercel
+// чтобы req.ip возвращал реальный IP клиента, а не IP прокси
+app.set('trust proxy', 1);
+
 // CORS — разрешаем запросы с фронтенда (убираем trailing slash из env если есть)
 const allowedOrigin = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 app.use(cors({
