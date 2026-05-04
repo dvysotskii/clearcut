@@ -1,7 +1,8 @@
 const { Database } = require('node-sqlite3-wasm');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'clearcut.db');
+// На Railway данные хранятся в /app/data (Volume), локально — рядом с кодом
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'clearcut.db');
 
 const db = new Database(DB_PATH);
 
