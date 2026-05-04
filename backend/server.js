@@ -33,6 +33,7 @@ app.use(authMiddleware);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/user', require('./routes/user'));
 app.use('/api/usage', require('./routes/usage'));
+app.use('/api/remove-bg', require('./routes/removebg'));
 
 // Health check
 app.get('/health', (req, res) => {

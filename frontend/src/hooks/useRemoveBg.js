@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { removeBackground as imglyRemoveBackground } from '@imgly/background-removal';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export function useRemoveBg() {
   const [processing, setProcessing] = useState(false);
@@ -7,43 +8,56 @@ export function useRemoveBg() {
   const [progressLabel, setProgressLabel] = useState('');
   const [error, setError] = useState(null);
   const [resultUrl, setResultUrl] = useState(null);
+  const [remaining, setRemaining] = useState(null);
 
   const removeBackground = useCallback(async (imageFile) => {
     setProcessing(true);
     setProgress(0);
     setError(null);
     setResultUrl(null);
-    setProgressLabel('Загрузка AI-модели... Первый раз может занять до минуты');
+    setProgressLabel('Обработка изображения...');
+
+    // Анимируем прогресс пока ждём ответа от API
+    let fakeProgress = 0;
+    const timer = setInterval(() => {
+      fakeProgress = Math.min(fakeProgress + 8, 85);
+      setProgress(fakeProgress);
+    }, 300);
 
     try {
-      const blob = await imglyRemoveBackground(imageFile, {
-        progress: (key, current, total) => {
-          if (total > 0) {
-            const pct = Math.round((current / total) * 100);
-            setProgress(pct);
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('image', imageFile);
 
-            // Понятные метки для разных этапов загрузки модели
-            if (key.includes('fetch') || key.includes('download')) {
-              setProgressLabel(`Загрузка AI-модели... ${pct}%`);
-            } else if (key.includes('inference') || key.includes('process')) {
-              setProgressLabel(`Обработка изображения... ${pct}%`);
-            } else {
-              setProgressLabel(`${pct}%`);
-            }
-          }
-        },
+      const response = await fetch(`${API_URL}/api/remove-bg`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
       });
 
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw Object.assign(new Error(data.error || 'Ошибка обработки'), {
+          status: response.status,
+        });
+      }
+
+      // Читаем остаток использований из заголовка
+      const rem = response.headers.get('X-Remaining');
+      if (rem !== null) setRemaining(parseInt(rem, 10));
+
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
+
+      setProgress(100);
       setResultUrl(url);
       return url;
     } catch (err) {
-      const message = err.message || 'Не удалось обработать изображение';
-      setError(message);
+      setError(err.message);
       throw err;
     } finally {
+      clearInterval(timer);
       setProcessing(false);
-      setProgress(0);
       setProgressLabel('');
     }
   }, []);
@@ -57,5 +71,5 @@ export function useRemoveBg() {
     setProcessing(false);
   }, [resultUrl]);
 
-  return { removeBackground, processing, progress, progressLabel, error, resultUrl, reset };
+  return { removeBackground, processing, progress, progressLabel, error, resultUrl, remaining, reset };
 }
