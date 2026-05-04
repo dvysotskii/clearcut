@@ -100,9 +100,6 @@ export default function Editor() {
           {usageError && (
             <div className="alert alert-error">
               <p>{usageError}</p>
-              {!user && (
-                <p className="alert-hint">Зарегистрируйтесь — лимит сбрасывается каждый день.</p>
-              )}
             </div>
           )}
 

@@ -41,7 +41,9 @@ router.post('/track', authMiddleware, (req, res) => {
 
     if (limit !== null && todayCount >= limit) {
       return res.status(429).json({
-        error: 'Дневной лимит исчерпан. Зарегистрируйтесь или обновитесь до Pro.',
+        error: userId
+          ? 'Дневной лимит исчерпан. Лимит сбросится завтра или перейдите на Pro.'
+          : 'Дневной лимит исчерпан. Зарегистрируйтесь для отдельного лимита или перейдите на Pro.',
         remaining: 0,
         limit,
       });
