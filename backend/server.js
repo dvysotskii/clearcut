@@ -7,9 +7,17 @@ const { authMiddleware } = require('./middleware');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS — разрешаем запросы с фронтенда
+// CORS — разрешаем запросы с фронтенда (убираем trailing slash из env если есть)
+const allowedOrigin = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Разрешаем запросы без origin (curl, мобильные) и с нашего домена
+    if (!origin || origin.replace(/\/$/, '') === allowedOrigin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 

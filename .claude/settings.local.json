@@ -16,7 +16,9 @@
       "Bash(ssh -T git@github.com)",
       "Bash(curl *)",
       "Bash(python3 -m json.tool)",
-      "Bash(node server.js)"
+      "Bash(node server.js)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
