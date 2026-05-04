@@ -9,7 +9,12 @@
       "Bash(pkill -f \"node server.js\")",
       "Bash(npm run *)",
       "Read(//tmp/**)",
-      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"pass123\"}')"
+      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"pass123\"}')",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(curl *)"
     ]
   }
 }
