@@ -1,0 +1,15 @@
+# Backend
+backend/node_modules/
+backend/.env
+backend/clearcut.db
+backend/clearcut.db-journal
+backend/clearcut.db-shm
+backend/clearcut.db-wal
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# OS
+.DS_Store
