@@ -7,6 +7,6 @@ export default defineConfig({
     port: 5173,
   },
   optimizeDeps: {
-    exclude: ['@imgly/background-removal'],
+    exclude: ['@huggingface/transformers', '@imgly/background-removal'],
   },
 });
